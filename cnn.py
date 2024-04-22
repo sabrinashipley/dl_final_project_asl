@@ -1,11 +1,5 @@
-from __future__ import absolute_import
-from matplotlib import pyplot as plt
-
-import os
+import preprocess
 import tensorflow as tf
-import numpy as np
-import random
-import math
 
 NUM_EPOCHS = 20
 
@@ -14,7 +8,7 @@ class Model(tf.keras.Model):
     super(Model, self).__init__()
     
     self.optimizer = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9)
-    self.input_shape = (100, 100, 1)
+    self.input_shape = (100, 100, 3)
     self.num_classes = 10 
 
     self.cnn = tf.keras.Sequential([
@@ -31,31 +25,32 @@ class Model(tf.keras.Model):
   def call(self, inputs):
     return self.cnn(inputs)
 
-  def loss(self, logits, labels):
-    pass
-
   def accuracy(self, logits, labels):
     pass
 
 def train(model, train_inputs, train_labels):
-  total_loss = 0
-      
-  with tf.GradientTape() as tape:
-    x_hat = model(train_inputs, train_labels)
-    batch_loss = loss_function(x_hat)
-  gradients = tape.gradient(batch_loss, model.trainable_variables)
-  model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-  total_loss += batch_loss    
+  loss = 0
   
-  return total_loss
+  for epoch in range(NUM_EPOCHS):
+    with tf.GradientTape() as tape:
+      x_hat = model(train_inputs, train_labels)
+      loss += model.loss(x_hat)
+    gradients = tape.gradient(loss, model.trainable_variables)
+    model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+
+  return loss/ NUM_EPOCHS
 
 def test(model, test_inputs, test_labels):
-  pass
+  x_hat = model(test_inputs, test_labels)
+
+  return model.loss(x_hat)
 
 def main():
-  # Compile the model with optimizer and loss function
-  model.compile(loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+  
+  model = Model()
 
-  # Display model summary
-  model.summary()
+  x_train, y_train, x_test, y_test = preprocess.load_data('FOLDER')
+
+  train(model, x_train, y_train)
+
+  test(model, x_test, y_test)
