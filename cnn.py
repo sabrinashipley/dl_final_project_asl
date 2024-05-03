@@ -26,8 +26,10 @@ class Model(tf.keras.Model):
     return self.cnn(inputs)
 
   def accuracy(self, logits, labels):
-    pass
-
+    correct_classes = tf.argmax(logits, axis=-1) == labels
+    accuracy = tf.reduce_mean(tf.cast(correct_classes, tf.float32))
+    return accuracy
+  
 def train(model, train_inputs, train_labels):
   loss = 0
   
@@ -43,7 +45,7 @@ def train(model, train_inputs, train_labels):
 def test(model, test_inputs, test_labels):
   x_hat = model(test_inputs, test_labels)
 
-  return model.loss(x_hat)
+  return model.loss(x_hat) 
 
 def main():
   
